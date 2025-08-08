@@ -15,8 +15,8 @@ export default defineConfig({
       manifest: {
         name: 'Minimalist Weather',
         short_name: 'Weather',
-        start_url: '.',
-        scope: '.',
+  start_url: base,
+  scope: base,
         display: 'standalone',
         background_color: '#0f172a',
         theme_color: '#0f172a',
