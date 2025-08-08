@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy PWA to GitHub Pages
 
 on:
   push:
@@ -18,31 +18,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
-      - name: Install dependencies
-  run: npm install --no-fund --no-audit
-
-      - name: Build with Vite base for project page
+      - run: npm ci
+      - uses: actions/configure-pages@v5
+      - name: Build
         run: npm run build
         env:
-          VITE_BASE: /${{ github.event.repository.name }}/
-
-      - name: Add SPA fallback (404.html)
-        run: cp dist/index.html dist/404.html
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+          # IMPORTANT: if you rename the repo, update this base path accordingly
+          VITE_BASE: /minimalist-weather-pwa/
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -50,6 +40,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
