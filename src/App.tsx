@@ -381,6 +381,35 @@ export default function WeatherApp() {
     }
   }
 
+  // Use the browser geolocation to set current coords and city (best-effort)
+  function useCurrentLocation(e?: React.MouseEvent) {
+    e?.preventDefault();
+    if (!navigator.geolocation) {
+      setError("Geolocation not supported in this browser");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setCoords({ lat: latitude, lon: longitude });
+        try {
+          const name = await reverseGeocode(latitude, longitude);
+          if (name) setCity(name);
+        } catch {
+          // ignore reverse geocode failure, coords are set at least
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setError(err?.message || "Failed to get current location");
+        setLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }
+
   // Derived
   const unitTemp = (v: number) => fmtTemp(v, units);
   const unitWind = (v: number) => fmtWind(v, units);
@@ -484,6 +513,15 @@ export default function WeatherApp() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <button
+            className="px-3 py-2 rounded-xl bg-slate-700/60 border border-slate-700 text-sm text-slate-100 hover:bg-slate-600 transition flex items-center gap-2"
+            type="button"
+            onClick={useCurrentLocation}
+            disabled={loading}
+          >
+            <span className="text-lg">📍</span>
+            <span className="hidden sm:inline">Current</span>
+          </button>
           <button
             className="px-4 py-2 rounded-xl bg-slate-100 text-slate-900 text-sm font-medium hover:bg-white transition"
             type="submit"
